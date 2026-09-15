@@ -47,6 +47,5 @@ if st.button('Predict Delay'):
     else:
         st.success(f"The model predicts **NO DELAY** in delivery (Probability: {prediction_proba[0]:.2f}).")
     
-   
-
-
+    st.write("\n---\n")
+    st.write(f"Full probabilities: No Delay={prediction_proba[0]:.2f}, Delay={prediction_proba[1]:.2f}")
