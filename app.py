@@ -2,50 +2,54 @@ import streamlit as st
 import joblib
 import pandas as pd
 
-# Load the trained model
-model = joblib.load('logi.sav')
-
 st.title('Delivery Delay Prediction App')
-st.write('Enter the features below to predict delivery delay.')
 
-# Input fields for features (based on x_train/x_test columns)
-# You might need to adjust these based on the actual feature ranges and types
-delivery_distance = st.slider('Delivery Distance', min_value=0.0, max_value=100.0, value=50.0)
-traffic_congestion = st.slider('Traffic Congestion (1-5)', min_value=1, max_value=5, value=3)
-weather_condition = st.slider('Weather Condition (1-5)', min_value=1, max_value=5, value=3)
-delivery_slot = st.slider('Delivery Slot (1-3)', min_value=1, max_value=3, value=2)
-preparation_time = st.slider('Preparation Time (minutes)', min_value=0, max_value=120, value=60)
-vehicle_condition = st.slider('Vehicle Condition (1-5)', min_value=1, max_value=5, value=3)
-customer_satisfaction = st.slider('Customer Satisfaction (1-5)', min_value=1, max_value=5, value=3)
-rush_hour = st.selectbox('Rush Hour', [0, 1]) # Assuming 0 for no rush hour, 1 for rush hour
-feature_1 = st.slider('Feature 1', min_value=0.0, max_value=200.0, value=100.0)
-feature_2 = st.slider('Feature 2', min_value=0.0, max_value=50.0, value=25.0)
-feature_3 = st.slider('Feature 3', min_value=0.0, max_value=200.0, value=100.0)
+# Load the trained Logistic Regression model
+logi_model = joblib.load('logi.sav')
 
-# Create a DataFrame for the input features
-input_data = pd.DataFrame([{
-    'Delivery_Distance': delivery_distance,
-    'Traffic_Congestion': traffic_congestion,
-    'Weather_Condition': weather_condition,
-    'Delivery_Slot': delivery_slot,
-    'Preparation_Time': preparation_time,
-    'Vehicle_Condition': vehicle_condition,
-    'Customer_Satisfaction': customer_satisfaction,
-    'Rush_Hour': rush_hour,
-    'Feature_1': feature_1,
-    'Feature_2': feature_2,
-    'Feature_3': feature_3
-}])
+st.sidebar.header('Input Features')
 
-if st.button('Predict Delay'):
-    prediction = model.predict(input_data)
-    prediction_proba = model.predict_proba(input_data)[0]
-    
-    st.subheader('Prediction Result:')
-    if prediction[0] == 1:
-        st.error(f"The model predicts a **DELAY** in delivery (Probability: {prediction_proba[1]:.2f}).")
-    else:
-        st.success(f"The model predicts **NO DELAY** in delivery (Probability: {prediction_proba[0]:.2f}).")
-    
-    st.write("\n---\n")
-    st.write(f"Full probabilities: No Delay={prediction_proba[0]:.2f}, Delay={prediction_proba[1]:.2f}")
+def user_input_features():
+    delivery_distance = st.sidebar.slider('Delivery_Distance', 0.0, 100.0, 50.0)
+    traffic_congestion = st.sidebar.slider('Traffic_Congestion', 1, 5, 3)
+    weather_condition = st.sidebar.slider('Weather_Condition', 1, 3, 2)
+    delivery_slot = st.sidebar.slider('Delivery_Slot', 1, 3, 2)
+    driver_experience = st.sidebar.slider('Driver_Experience', 0, 20, 10)
+    num_stops = st.sidebar.slider('Num_Stops', 1, 10, 5)
+    vehicle_age = st.sidebar.slider('Vehicle_Age', 1, 10, 5)
+    road_condition_score = st.sidebar.slider('Road_Condition_Score', 1, 5, 3)
+    package_weight = st.sidebar.slider('Package_Weight', 0.0, 150.0, 75.0)
+    fuel_efficiency = st.sidebar.slider('Fuel_Efficiency', 5.0, 25.0, 15.0)
+    warehouse_processing_time = st.sidebar.slider('Warehouse_Processing_Time', 0, 100, 50)
+
+    data = {'Delivery_Distance': delivery_distance,
+            'Traffic_Congestion': traffic_congestion,
+            'Weather_Condition': weather_condition,
+            'Delivery_Slot': delivery_slot,
+            'Driver_Experience': driver_experience,
+            'Num_Stops': num_stops,
+            'Vehicle_Age': vehicle_age,
+            'Road_Condition_Score': road_condition_score,
+            'Package_Weight': package_weight,
+            'Fuel_Efficiency': fuel_efficiency,
+            'Warehouse_Processing_Time': warehouse_processing_time}
+    features = pd.DataFrame(data, index=[0])
+    return features
+
+df_input = user_input_features()
+
+st.subheader('User Input features')
+st.write(df_input)
+
+# Make prediction
+prediction = logi_model.predict(df_input)
+prediction_proba = logi_model.predict_proba(df_input)
+
+st.subheader('Prediction')
+if prediction[0] == 1:
+    st.write('Delivery is likely to be Delayed')
+else:
+    st.write('Delivery is likely to be On-Time')
+
+st.subheader('Prediction Probability (On-Time vs. Delayed)')
+st.write(prediction_proba)
